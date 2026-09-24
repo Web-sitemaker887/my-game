@@ -6,16 +6,44 @@
   <title>My Game</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
+      min-height: 100vh;
       font-family: Arial, sans-serif;
-      background: #111827;
       color: white;
       text-align: center;
+
+      background:
+        radial-gradient(circle at 20% 20%, #312e81, transparent 35%),
+        radial-gradient(circle at 80% 80%, #164e63, transparent 35%),
+        #050816;
+
+      background-size: 200% 200%;
+      animation: backgroundMove 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes backgroundMove {
+      from {
+        background-position: 0% 0%;
+      }
+
+      to {
+        background-position: 100% 100%;
+      }
     }
 
     h1 {
-      margin-top: 30px;
+      margin: 30px 0 10px;
+      font-size: 42px;
+    }
+
+    .subtitle {
+      opacity: 0.8;
+      margin-bottom: 20px;
     }
 
     .scores {
@@ -24,16 +52,40 @@
       line-height: 1.8;
     }
 
+    #start {
+      padding: 13px 28px;
+      border: none;
+      border-radius: 12px;
+      background: #3b82f6;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.15s;
+    }
+
+    #start:hover {
+      background: #2563eb;
+      transform: scale(1.05);
+    }
+
+    #start:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     #game {
       width: 90%;
       max-width: 700px;
       height: 450px;
-      margin: 20px auto;
-      background: #1f2937;
-      border: 3px solid #374151;
-      border-radius: 15px;
+      margin: 25px auto;
+      background: rgba(17, 24, 39, 0.85);
+      border: 2px solid #374151;
+      border-radius: 20px;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 0 35px rgba(59, 130, 246, 0.25);
     }
 
     #target {
@@ -47,20 +99,49 @@
       font-weight: bold;
       position: absolute;
       cursor: pointer;
+
+      box-shadow:
+        0 0 10px #22c55e,
+        0 0 25px rgba(34, 197, 94, 0.6);
+
+      transition:
+        width 0.15s,
+        height 0.15s,
+        transform 0.12s;
     }
 
-    #start {
-      padding: 12px 25px;
-      border: none;
-      border-radius: 10px;
-      background: #3b82f6;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
+    #target:hover {
+      transform: scale(1.1);
     }
 
-    #start:disabled {
-      opacity: 0.5;
+    #target:active {
+      transform: scale(0.75);
+    }
+
+    .hit {
+      animation: hitEffect 0.3s ease;
+    }
+
+    @keyframes hitEffect {
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.5);
+        opacity: 0.5;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    #feedback {
+      font-size: 26px;
+      font-weight: bold;
+      height: 40px;
     }
 
     #message {
@@ -68,57 +149,100 @@
       min-height: 25px;
     }
 
-    #feedback {
-      font-size: 24px;
+    .game-over {
+      color: #f87171;
+      font-size: 28px;
       font-weight: bold;
-      height: 35px;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 32px;
+      }
+
+      #game {
+        height: 400px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <h1>🎮 My Game</h1>
+  <h1>🎮 MY GAME</h1>
+
+  <p class="subtitle">
+    How fast can you click?
+  </p>
 
   <div class="scores">
     Score: <span id="score">0</span>
     &nbsp; | &nbsp;
+
     Time: <span id="time">15</span>
     &nbsp; | &nbsp;
+
     🏆 High Score: <span id="highScore">0</span>
+
     <br>
 
     ⚡ Level: <span id="level">1</span>
     &nbsp; | &nbsp;
+
     ❤️ Lives: <span id="lives">3</span>
     &nbsp; | &nbsp;
+
     🔥 Combo: <span id="combo">0</span>
   </div>
 
-  <button id="start">Start Game</button>
+  <button id="start">
+    Start Game
+  </button>
 
   <div id="game">
-    <button id="target" hidden>+</button>
+
+    <button id="target" hidden>
+      +
+    </button>
+
   </div>
 
   <div id="feedback"></div>
 
-  <p id="message">Press Start to play!</p>
+  <p id="message">
+    Press Start to play!
+  </p>
 
   <script>
+
     const game = document.getElementById("game");
     const target = document.getElementById("target");
     const start = document.getElementById("start");
 
-    const scoreDisplay = document.getElementById("score");
-    const timeDisplay = document.getElementById("time");
-    const highScoreDisplay = document.getElementById("highScore");
-    const levelDisplay = document.getElementById("level");
-    const livesDisplay = document.getElementById("lives");
-    const comboDisplay = document.getElementById("combo");
+    const scoreDisplay =
+      document.getElementById("score");
 
-    const message = document.getElementById("message");
-    const feedback = document.getElementById("feedback");
+    const timeDisplay =
+      document.getElementById("time");
+
+    const highScoreDisplay =
+      document.getElementById("highScore");
+
+    const levelDisplay =
+      document.getElementById("level");
+
+    const livesDisplay =
+      document.getElementById("lives");
+
+    const comboDisplay =
+      document.getElementById("combo");
+
+    const message =
+      document.getElementById("message");
+
+    const feedback =
+      document.getElementById("feedback");
+
 
     let score = 0;
     let time = 15;
@@ -126,57 +250,157 @@
     let lives = 3;
     let combo = 0;
 
-    let highScore = Number(localStorage.getItem("highScore")) || 0;
+    let highScore =
+      Number(localStorage.getItem("highScore")) || 0;
 
     let timer;
     let moveTimer;
+
     let playing = false;
+
 
     highScoreDisplay.textContent = highScore;
 
-    function moveTarget() {
-      const maxX = game.clientWidth - target.offsetWidth;
-      const maxY = game.clientHeight - target.offsetHeight;
 
-      const x = Math.random() * Math.max(0, maxX);
-      const y = Math.random() * Math.max(0, maxY);
+    /*
+      Create simple browser sounds.
+    */
 
-      target.style.left = x + "px";
-      target.style.top = y + "px";
+    function playSound(frequency, duration) {
+
+      try {
+
+        const audio =
+          new (window.AudioContext ||
+          window.webkitAudioContext)();
+
+        const oscillator =
+          audio.createOscillator();
+
+        const gain =
+          audio.createGain();
+
+        oscillator.frequency.value =
+          frequency;
+
+        oscillator.type = "sine";
+
+        gain.gain.value = 0.08;
+
+        oscillator.connect(gain);
+
+        gain.connect(audio.destination);
+
+        oscillator.start();
+
+        setTimeout(() => {
+
+          oscillator.stop();
+
+          audio.close();
+
+        }, duration);
+
+      } catch (error) {
+
+        // Sound is optional.
+      }
     }
+
+
+    function moveTarget() {
+
+      const maxX =
+        game.clientWidth -
+        target.offsetWidth;
+
+      const maxY =
+        game.clientHeight -
+        target.offsetHeight;
+
+      const x =
+        Math.random() *
+        Math.max(0, maxX);
+
+      const y =
+        Math.random() *
+        Math.max(0, maxY);
+
+      target.style.left =
+        x + "px";
+
+      target.style.top =
+        y + "px";
+    }
+
 
     function updateDifficulty() {
-      level = Math.floor(score / 5) + 1;
 
-      levelDisplay.textContent = level;
+      level =
+        Math.floor(score / 5) + 1;
 
-      const size = Math.max(25, 55 - (level - 1) * 5);
+      levelDisplay.textContent =
+        level;
 
-      target.style.width = size + "px";
-      target.style.height = size + "px";
+
+      const size =
+        Math.max(
+          25,
+          55 - (level - 1) * 5
+        );
+
+      target.style.width =
+        size + "px";
+
+      target.style.height =
+        size + "px";
+
 
       clearInterval(moveTimer);
 
-      const speed = Math.max(350, 1200 - (level - 1) * 120);
 
-      moveTimer = setInterval(() => {
-        if (playing) {
-          moveTarget();
-        }
-      }, speed);
+      const speed =
+        Math.max(
+          350,
+          1200 - (level - 1) * 120
+        );
+
+
+      moveTimer =
+        setInterval(() => {
+
+          if (playing) {
+
+            moveTarget();
+
+          }
+
+        }, speed);
+
     }
+
 
     function showFeedback(text) {
-      feedback.textContent = text;
+
+      feedback.textContent =
+        text;
+
 
       setTimeout(() => {
-        feedback.textContent = "";
+
+        feedback.textContent =
+          "";
+
       }, 500);
+
     }
 
+
     function startGame() {
+
       clearInterval(timer);
       clearInterval(moveTimer);
+
 
       score = 0;
       time = 15;
@@ -184,99 +408,252 @@
       lives = 3;
       combo = 0;
 
+
       playing = true;
 
-      scoreDisplay.textContent = score;
-      timeDisplay.textContent = time;
-      levelDisplay.textContent = level;
-      livesDisplay.textContent = lives;
-      comboDisplay.textContent = combo;
 
-      target.style.width = "55px";
-      target.style.height = "55px";
+      scoreDisplay.textContent =
+        score;
 
-      feedback.textContent = "";
-      message.textContent = "GO! 🎯";
+      timeDisplay.textContent =
+        time;
 
-      target.hidden = false;
-      start.disabled = true;
+      levelDisplay.textContent =
+        level;
+
+      livesDisplay.textContent =
+        lives;
+
+      comboDisplay.textContent =
+        combo;
+
+
+      target.style.width =
+        "55px";
+
+      target.style.height =
+        "55px";
+
+
+      message.textContent =
+        "GO! 🎯";
+
+      message.className =
+        "";
+
+
+      feedback.textContent =
+        "";
+
+
+      target.hidden =
+        false;
+
+      start.disabled =
+        true;
+
 
       moveTarget();
+
       updateDifficulty();
 
-      timer = setInterval(() => {
-        time--;
-        timeDisplay.textContent = time;
 
-        if (time <= 0) {
-          endGame("⏰ Time's up!");
-        }
-      }, 1000);
+      timer =
+        setInterval(() => {
+
+          time--;
+
+          timeDisplay.textContent =
+            time;
+
+
+          if (time <= 0) {
+
+            endGame(
+              "⏰ Time's up!"
+            );
+
+          }
+
+        }, 1000);
+
     }
 
+
     function endGame(reason) {
+
       clearInterval(timer);
+
       clearInterval(moveTimer);
+
 
       playing = false;
 
-      target.hidden = true;
-      start.disabled = false;
+
+      target.hidden =
+        true;
+
+      start.disabled =
+        false;
+
+
+      playSound(180, 300);
+
 
       if (score > highScore) {
-        highScore = score;
 
-        localStorage.setItem("highScore", highScore);
-        highScoreDisplay.textContent = highScore;
+        highScore =
+          score;
+
+
+        localStorage.setItem(
+          "highScore",
+          highScore
+        );
+
+
+        highScoreDisplay.textContent =
+          highScore;
+
 
         message.textContent =
-          "🏆 NEW HIGH SCORE! " + score + " points!";
+          "🏆 NEW HIGH SCORE! " +
+          score +
+          " points!";
+
       } else {
+
         message.textContent =
-          reason + " Final score: " + score;
+          reason +
+          " Final score: " +
+          score;
+
       }
 
-      feedback.textContent = "GAME OVER 🎮";
+
+      message.className =
+        "game-over";
+
+
+      feedback.textContent =
+        "GAME OVER 🎮";
+
     }
 
-    target.addEventListener("click", function(event) {
-      event.stopPropagation();
 
-      if (!playing) return;
+    target.addEventListener(
+      "click",
+      function(event) {
 
-      score++;
-      combo++;
+        event.stopPropagation();
 
-      scoreDisplay.textContent = score;
-      comboDisplay.textContent = combo;
 
-      if (combo >= 3) {
-        showFeedback("🔥 COMBO x" + combo + "!");
-      } else {
-        showFeedback("+1 🎯");
+        if (!playing) return;
+
+
+        score++;
+
+        combo++;
+
+
+        scoreDisplay.textContent =
+          score;
+
+        comboDisplay.textContent =
+          combo;
+
+
+        playSound(
+          500 + combo * 20,
+          80
+        );
+
+
+        target.classList.remove(
+          "hit"
+        );
+
+
+        void target.offsetWidth;
+
+
+        target.classList.add(
+          "hit"
+        );
+
+
+        if (combo >= 3) {
+
+          showFeedback(
+            "🔥 COMBO x" +
+            combo +
+            "!"
+          );
+
+        } else {
+
+          showFeedback(
+            "+1 🎯"
+          );
+
+        }
+
+
+        updateDifficulty();
+
+        moveTarget();
+
       }
+    );
 
-      updateDifficulty();
-      moveTarget();
-    });
 
-    game.addEventListener("click", function() {
-      if (!playing) return;
+    game.addEventListener(
+      "click",
+      function() {
 
-      lives--;
-      combo = 0;
+        if (!playing) return;
 
-      livesDisplay.textContent = lives;
-      comboDisplay.textContent = combo;
 
-      showFeedback("💔 MISS!");
+        lives--;
 
-      if (lives <= 0) {
-        endGame("💔 No lives left!");
+        combo = 0;
+
+
+        livesDisplay.textContent =
+          lives;
+
+        comboDisplay.textContent =
+          combo;
+
+
+        playSound(
+          150,
+          120
+        );
+
+
+        showFeedback(
+          "💔 MISS!"
+        );
+
+
+        if (lives <= 0) {
+
+          endGame(
+            "💔 No lives left!"
+          );
+
+        }
+
       }
-    });
+    );
 
-    start.addEventListener("click", startGame);
+
+    start.addEventListener(
+      "click",
+      startGame
+    );
+
   </script>
 
 </body>

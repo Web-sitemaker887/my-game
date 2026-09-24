@@ -19,8 +19,9 @@
     }
 
     .scores {
-      font-size: 20px;
+      font-size: 18px;
       margin: 15px;
+      line-height: 1.8;
     }
 
     #game {
@@ -46,6 +47,7 @@
       font-weight: bold;
       position: absolute;
       cursor: pointer;
+      transition: width 0.15s, height 0.15s;
     }
 
     #start {
@@ -62,9 +64,15 @@
       background: #2563eb;
     }
 
+    #start:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     #message {
       margin-top: 15px;
       font-size: 18px;
+      min-height: 25px;
     }
   </style>
 </head>
@@ -79,6 +87,8 @@
     Time: <span id="time">15</span>
     &nbsp; | &nbsp;
     🏆 High Score: <span id="highScore">0</span>
+    <br>
+    ⚡ Level: <span id="level">1</span>
   </div>
 
   <button id="start">Start Game</button>
@@ -96,43 +106,77 @@
     const scoreDisplay = document.getElementById("score");
     const timeDisplay = document.getElementById("time");
     const highScoreDisplay = document.getElementById("highScore");
+    const levelDisplay = document.getElementById("level");
     const message = document.getElementById("message");
 
     let score = 0;
     let time = 15;
+    let level = 1;
+    let highScore = Number(localStorage.getItem("highScore")) || 0;
+
     let timer;
+    let moveTimer;
     let playing = false;
 
-    // Load saved high score
-    let highScore = Number(localStorage.getItem("highScore")) || 0;
     highScoreDisplay.textContent = highScore;
 
     function moveTarget() {
       const maxX = game.clientWidth - target.offsetWidth;
       const maxY = game.clientHeight - target.offsetHeight;
 
-      const x = Math.random() * maxX;
-      const y = Math.random() * maxY;
+      const x = Math.random() * Math.max(0, maxX);
+      const y = Math.random() * Math.max(0, maxY);
 
       target.style.left = x + "px";
       target.style.top = y + "px";
     }
 
+    function updateDifficulty() {
+      level = Math.floor(score / 5) + 1;
+
+      levelDisplay.textContent = level;
+
+      // Target gets smaller every level
+      const newSize = Math.max(25, 55 - (level - 1) * 5);
+
+      target.style.width = newSize + "px";
+      target.style.height = newSize + "px";
+
+      // Target moves faster every level
+      clearInterval(moveTimer);
+
+      const moveSpeed = Math.max(350, 1200 - (level - 1) * 120);
+
+      moveTimer = setInterval(() => {
+        if (playing) {
+          moveTarget();
+        }
+      }, moveSpeed);
+    }
+
     function startGame() {
       clearInterval(timer);
+      clearInterval(moveTimer);
 
       score = 0;
       time = 15;
+      level = 1;
       playing = true;
 
       scoreDisplay.textContent = score;
       timeDisplay.textContent = time;
+      levelDisplay.textContent = level;
+
+      target.style.width = "55px";
+      target.style.height = "55px";
+
       message.textContent = "GO! 🎯";
 
       target.hidden = false;
       start.disabled = true;
 
       moveTarget();
+      updateDifficulty();
 
       timer = setInterval(() => {
         time--;
@@ -146,12 +190,13 @@
 
     function endGame() {
       clearInterval(timer);
+      clearInterval(moveTimer);
+
       playing = false;
 
       target.hidden = true;
       start.disabled = false;
 
-      // Check for a new high score
       if (score > highScore) {
         highScore = score;
 
@@ -171,8 +216,10 @@
       if (!playing) return;
 
       score++;
+
       scoreDisplay.textContent = score;
 
+      updateDifficulty();
       moveTarget();
     });
 

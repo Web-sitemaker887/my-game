@@ -18,6 +18,11 @@
       margin-top: 30px;
     }
 
+    .scores {
+      font-size: 20px;
+      margin: 15px;
+    }
+
     #game {
       width: 90%;
       max-width: 700px;
@@ -59,6 +64,7 @@
 
     #message {
       margin-top: 15px;
+      font-size: 18px;
     }
   </style>
 </head>
@@ -67,11 +73,13 @@
 
   <h1>🎮 My Game</h1>
 
-  <p>
+  <div class="scores">
     Score: <span id="score">0</span>
     &nbsp; | &nbsp;
     Time: <span id="time">15</span>
-  </p>
+    &nbsp; | &nbsp;
+    🏆 High Score: <span id="highScore">0</span>
+  </div>
 
   <button id="start">Start Game</button>
 
@@ -87,12 +95,17 @@
     const start = document.getElementById("start");
     const scoreDisplay = document.getElementById("score");
     const timeDisplay = document.getElementById("time");
+    const highScoreDisplay = document.getElementById("highScore");
     const message = document.getElementById("message");
 
     let score = 0;
     let time = 15;
     let timer;
     let playing = false;
+
+    // Load saved high score
+    let highScore = Number(localStorage.getItem("highScore")) || 0;
+    highScoreDisplay.textContent = highScore;
 
     function moveTarget() {
       const maxX = game.clientWidth - target.offsetWidth;
@@ -106,13 +119,15 @@
     }
 
     function startGame() {
+      clearInterval(timer);
+
       score = 0;
       time = 15;
       playing = true;
 
       scoreDisplay.textContent = score;
       timeDisplay.textContent = time;
-      message.textContent = "";
+      message.textContent = "GO! 🎯";
 
       target.hidden = false;
       start.disabled = true;
@@ -136,7 +151,20 @@
       target.hidden = true;
       start.disabled = false;
 
-      message.textContent = "Game Over! Your score was " + score + "!";
+      // Check for a new high score
+      if (score > highScore) {
+        highScore = score;
+
+        localStorage.setItem("highScore", highScore);
+
+        highScoreDisplay.textContent = highScore;
+
+        message.textContent =
+          "🏆 NEW HIGH SCORE! You scored " + score + "!";
+      } else {
+        message.textContent =
+          "Game Over! You scored " + score + "!";
+      }
     }
 
     target.addEventListener("click", () => {
